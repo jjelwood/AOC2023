@@ -167,7 +167,7 @@ for match in parts:
         for dy in range(-1, 2):
             if dx == 0 and dy == 0:
                 continue
-            if (not 0 <= (i % x)) + dx < x and (not 0 <= (i // y) + dy < y):
+            if (not 0 <= (i % x) + dx < x) or (not 0 <= (i // y) + dy < y):
                 continue
             
             if re.match(r"\d", input[i + dx + y * dy]):
