@@ -33,8 +33,6 @@ def consider(workflow, part):
     
     return workflow[-1]
 
-print
-
 result = 0
 for part in parts:
     cur_workflow_name = "in"
