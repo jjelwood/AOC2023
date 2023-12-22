@@ -42,7 +42,6 @@ class Path:
         self.nodes = [start] # Strictly for vizualising, not necessary for solving and would probably speed the program up if deleted
     
     def add_node(self, node):
-        # print(self.location, node, self.vel)
         if node - self.location == self.vel:
             self.n_same_dir += 1
         else:
@@ -64,26 +63,44 @@ class Path:
     
     def get_traversable_nodes(self):
         res = []
-        if self.n_same_dir < 3:
-            if self.location % X != 0 and self.vel != 1:
+        
+        if self.n_same_dir < 4:
+            if self.location % X != 0 and self.vel == -1:
                 res.append(self.location - 1)
-            if self.location % X != X - 1 and self.vel != -1:
+            if self.location % X != X - 1 and self.vel == 1:
                 res.append(self.location + 1)
-            if self.location // X != 0 and self.vel != X:
+            if self.location // X != 0 and self.vel == -X:
                 res.append(self.location - X)
-            if self.location // X != Y - 1 and self.vel != -X:
+            if self.location // X != Y - 1 and self.vel == X:
+                res.append(self.location + X)
+            
+            # Starting case
+            if self.vel == 0:
+                res.append(self.location + 1)
+                res.append(self.location + X)
+            return res
+
+        if self.n_same_dir >= 10:
+            if self.location % X != 0 and abs(self.vel) != 1:
+                res.append(self.location - 1)
+            if self.location % X != X - 1 and abs(self.vel) != 1:
+                res.append(self.location + 1)
+            if self.location // X != 0 and abs(self.vel) != X:
+                res.append(self.location - X)
+            if self.location // X != Y - 1 and abs(self.vel) != X:
                 res.append(self.location + X)
             return res
         
-        if self.location % X != 0 and abs(self.vel) != 1:
+        if self.location % X != 0 and self.vel != 1:
             res.append(self.location - 1)
-        if self.location % X != X - 1 and abs(self.vel) != 1:
+        if self.location % X != X - 1 and self.vel != -1:
             res.append(self.location + 1)
-        if self.location // X != 0 and abs(self.vel) != X:
+        if self.location // X != 0 and self.vel != X:
             res.append(self.location - X)
-        if self.location // X != Y - 1 and abs(self.vel) != X:
+        if self.location // X != Y - 1 and self.vel != -X:
             res.append(self.location + X)
         return res
+        
 
     def hash(self):
         return f"{self.location}, {self.vel}, {self.n_same_dir}"
@@ -149,7 +166,7 @@ def find_best_path():
     visited = set()
 
     while not paths.empty():
-        path = paths.get()
+        path = paths.get()[1]
 
         if path.location == end:
             break

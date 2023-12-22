@@ -13,61 +13,111 @@ test = """\
 .##..##.##.
 ..........."""
 
-#input = test
+test2 ="""\
+...
+.S.
+...\
+"""
+
+test3 = """\
+..###
+.#S..
+..###\
+"""
+
+import copy
+
+input = test3
 lines = input.split("\n")
 Y = len(lines)
 X = len(lines[0])
 garden = input.replace("\n", "")
 
-locations = {f"{garden.find('S')},0,0"}
-# zones = {x: {} for x in range(X*Y)}
-n_steps = 26501365
+start = garden.find('S')
+locations = {start}
+location_zones = {x: set() for x in range(X*Y)}
+location_zones[start].add("0,0")
+
+def zone_hash(x, y):
+    return f"{x},{y}"
+
+def shift_zone(zone, dx, dy):
+    x, y = [int(n) for n in zone.split(",")]
+    return zone_hash(x + dx, y + dy)
+
+n_steps = 5
 for i in range(n_steps):
-    print(i)
+    if i % 10000 == 0:
+        print(i)
     locations_move_from = list(locations)
-    for j in range(len(locations_move_from)):
-        hash = locations_move_from.pop(0)
-        location, x, y = [int(n) for n in hash.split(",")]
-        locations.remove(hash)
+
+    new_lzs = {x: set() for x in range(X*Y)}
+    for location in locations_move_from:
+        shift_left, shift_right, shift_up, shift_down = False, False, False, False
+        locations.remove(location)
+
         if location % X != 0:
             left = location - 1 
-            left_hash = f"{left},{x},{y}" 
         else:
             left = location + X - 1
-            left_hash = f"{left},{x-1},{y}"
+            shift_left = True
         if location % X != X - 1:
             right = location + 1 
-            right_hash = f"{right},{x},{y}"
         else:
             right = location - X + 1
-            right_hash = f"{right},{x+1},{y}"
+            shift_right = True
         if location // X != Y - 1:
             top = location + X 
-            top_hash = f"{top},{x},{y}"
         else:
             top = location % X
-            top_hash = f"{top},{x},{y+1}"
+            shift_up = True
         if location // X != 0:
             bottom = location - X 
-            bottom_hash = f"{bottom},{x},{y}"
         else: 
-            bottom = Y * (X - 1) + location % X
-            bottom_hash = f"{bottom},{x},{y-1}"
+            bottom = X * (Y - 1) + location
+            shift_down = True
+
         if garden[left] != "#":
-            if left_hash not in locations:
-                locations.add(left_hash)
+            locations.add(left)
+            if shift_left:
+                new_lzs[left] |= {shift_zone(zone, -1, 0) for zone in location_zones[location]}
+            else:
+                new_lzs[left] |= location_zones[location]
         if garden[right] != "#":
-            if right_hash not in locations:
-                locations.add(right_hash)
+            locations.add(right)
+            if shift_right:
+                new_lzs[right] |= {shift_zone(zone, 1, 0) for zone in location_zones[location]}
+            else:
+                new_lzs[right] |= location_zones[location]
         if garden[top] != "#":
-            if top_hash not in locations:
-                locations.add(top_hash)
+            locations.add(top)
+            if shift_up:
+                new_lzs[top] |= {shift_zone(zone, 0, 1) for zone in location_zones[location]}
+            else:
+                new_lzs[top] |= location_zones[location]
         if garden[bottom] != "#":
-            if bottom_hash not in locations:
-                locations.add(bottom_hash)
+            locations.add(bottom)
+            if shift_down:
+                new_lzs[bottom] |= {shift_zone(zone, 0, -1) for zone in location_zones[location]}
+            else:
+                new_lzs[bottom] |= location_zones[location]
+    
+    print(i+1)
+    for i in range(Y):
+        for j in range(X):
+            if X * i + j in locations:
+                print("O", end="")
+            else:
+                print(garden[X * i  + j], end="")
+        print()
+    print()
 
-print(len(locations))
+    location_zones = new_lzs
 
-# for hash in locations:
-#     location = int(hash.split(",")[0])
-#     print(location % X, location // X)
+result = 0
+
+for location, zones in location_zones.items():
+    print(location % X, location // X, zones)
+    result += len(zones)
+
+print(result)
