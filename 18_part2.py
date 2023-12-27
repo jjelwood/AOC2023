@@ -17,9 +17,10 @@ L 2 (#015232)
 U 2 (#7a21e3)\
 """
 
-commands = test.split("\n")
+commands = input.split("\n")
 location = (0, 0)
-edge_nodes = {location}
+vertices = []
+boundary_points = 0
 for command in commands:
     params = command.split()
     if params[2][-2] == "1":
@@ -31,28 +32,17 @@ for command in commands:
     elif params[2][-2] == "0":
         dir = [1, 0]
     
-    for _ in range(int(params[2][2:-2], base=16)):
-        new_location = (location[0] + dir[0], location[1] + dir[1])
-        edge_nodes.add(new_location)
-        location = new_location
+    n = int(params[2][2:-2], base=16)
+    new_location = (location[0] + dir[0] * n, location[1] + dir[1] * n)
+    boundary_points += n
+    vertices.append(new_location)
+    location = new_location
 
-# Guess that (1,1) is in the lagoon
+# Using the shoelace theorem
+# However this doesn't count the edges of the shape, as each point is being measured with its area
+area_excluding_edges = 1/2 * abs(sum(vertices[i][0] * (vertices[i - 1][1] - vertices[(i + 1) % len(vertices)][1]) for i in range(len(vertices))))
 
-inner_nodes = {(1,1)}
-queue = [(1,1)]
-print(len(edge_nodes))
-while queue:
-    if len(inner_nodes) % 100000 == 0:
-        print((len(inner_nodes) + 6405262) / 952408144115)
-    node = queue.pop(0)
+# Pick's Theorem
+interior_points = area_excluding_edges - boundary_points / 2 + 1
 
-    for dir in [(0, 1), (0, -1), (1, 0), (-1,0)]:
-        new_node = (node[0] + dir[0], node[1] + dir[1])
-        if new_node not in inner_nodes and new_node not in edge_nodes:
-            inner_nodes.add(new_node)
-            queue.append(new_node)
-
-print(len(inner_nodes) + len(edge_nodes))
-
-
-#print(sorted(edge_nodes))
+print(interior_points + boundary_points)
