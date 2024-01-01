@@ -33,30 +33,6 @@ for line in lines:
         
         possible_breaks.append((info[0],to))
 
-def count_isolated_cycles(edges):
-    nodes = set(edges)
-
-    count = 0
-    while nodes:
-        count += 1
-
-        if count > 2:
-            return 3
-
-        node = nodes.pop()
-
-        queue = [node]
-        visited = {node}
-        while queue:
-            node = queue.pop()
-            for next_node in edges[node]:
-                if next_node not in visited:
-                    queue.append(next_node)
-                    visited.add(next_node)
-                    nodes.remove(next_node)
-    
-    return count
-
 def get_groups(edges):
     nodes = set(edges)
 
@@ -91,24 +67,42 @@ def add_edge(edge):
     edges[edge[0]].add(edge[1])
     edges[edge[1]].add(edge[0])
 
-def find_edges_and_get_groups():
-    count = 0
-    for i, edge1 in enumerate(possible_breaks):
-        for j, edge2 in enumerate(possible_breaks[:i]):
-            for edge3 in possible_breaks[:j]:
-                count += 1
-                if count % 100000 == 0:
-                    print(count)
-                for edge in [edge1, edge2, edge3]:
-                    remove_edge(edge)
-                if count_isolated_cycles(edges) == 2:
-                    return get_groups(edges)
-                for edge in [edge1, edge2, edge3]:
-                    add_edge(edge)
+def find_path(start, end):
+    visited = {start}
+    stack = [start]
+    while stack:
+        vertex = stack.pop(0)
 
-print(len(possible_breaks))
-groups = find_edges_and_get_groups()
-res = 1
-for group in groups:
-    res *= len(group)
-print(res)
+        if vertex == end:
+            return
+
+        for next in edges[vertex]:
+            if next in visited:
+                continue
+
+            edge_counts[tuple(sorted([vertex, next]))] += 1
+            stack.append(next)
+            visited.add(next)
+
+edge_counts = {tuple(sorted(edge)): 0 for edge in possible_breaks}
+
+import random
+
+# vs = list(edges.keys())
+# for i in range(10000):
+#     # print(i)
+#     start, end = random.sample(vs, 2)
+#     # print(start, end)
+#     find_path(start, end)
+
+# print(sorted(((k, v) for k, v in edge_counts.items()), key=lambda x: x[1], reverse=True))
+
+# These were the top 3 edges
+edges_to_remove = [('jxb', 'ksq'), ('nqq', 'pxp'), ('dct', 'kns')]
+
+for edge in edges_to_remove:
+    remove_edge(edge)
+
+groups = get_groups(edges)
+
+print(len(groups[0]) * len(groups[1]))
